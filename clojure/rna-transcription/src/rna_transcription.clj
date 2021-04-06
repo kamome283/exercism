@@ -6,10 +6,7 @@
    \T \A
    \A \U})
 
-(defn valid-dna? [dna]
-  (->> dna
-       (every? (-> transcription-table keys set))))
-
 (defn to-rna [dna]
-  {:pre [(valid-dna? dna)]}
-  (->> dna (map transcription-table) (apply str)))
+  (let [rna (->> dna (keep transcription-table) (apply str))]
+    (assert (= (count rna) (count dna)))
+    rna))
