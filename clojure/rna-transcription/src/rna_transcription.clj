@@ -7,6 +7,6 @@
    \A \U})
 
 (defn to-rna [dna]
-  (let [rna (->> dna (keep transcription-table) (apply str))]
-    (assert (= (count rna) (count dna)))
-    rna))
+  (let [rna-seq (->> dna (keep transcription-table))]
+    (assert (= (count rna-seq) (count dna)))
+    (apply str rna-seq)))
