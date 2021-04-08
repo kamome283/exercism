@@ -1,28 +1,19 @@
 (ns run-length-encoding)
 
-(defn- convert [matcher, step]
-  (->> (repeatedly #(re-find matcher))
-       (take-while some?)
-       (map step)
-       (apply str)))
-
-(defn- encode-step [[s, ch]]
-  (let [cnt (count s)]
+(defn- encode-step [s]
+  (let [ch (first s)
+        cnt (count s)]
     (if (= cnt 1)
       ch
       (str cnt ch))))
 
-(defn run-length-encode
-  "encodes a string with run-length-encoding"
-  [plain-text]
-  (convert (re-matcher #"(.)\1*" plain-text) encode-step))
+(defn run-length-encode [text]
+  (->> text (partition-by identity) (map encode-step) (apply str)))
 
-(defn- decode-step [[_, count-s, ch]]
+(defn- decode-step [[_ count-s ch]]
   (if (empty? count-s)
     ch
     (->> ch (repeat (Integer/parseInt count-s)) (apply str))))
 
-(defn run-length-decode
-  "decodes a run-length-encoded string"
-  [cipher-text]
-  (convert (re-matcher #"(\d*)(\D)" cipher-text) decode-step))
+(defn run-length-decode [text]
+  (->> text (re-seq #"(\d*)(\D)") (map decode-step) (apply str)))
