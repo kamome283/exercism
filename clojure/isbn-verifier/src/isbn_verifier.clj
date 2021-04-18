@@ -1,23 +1,12 @@
 (ns isbn-verifier)
 
-(defn- to-num [ch]
-  (let [n (Character/digit ch 10)]
-    (cond
-      (nat-int? n) n
-      (= ch \-) nil
-      :else (throw (IllegalArgumentException.)))))
-
-(defn- to-num-x [ch]
-  (if (= ch \X)
-    10
-    (to-num ch)))
-
 (defn- digits [isbn]
-  (try
-    (let [bl (->> isbn butlast (keep to-num) vec)
-          l (-> isbn last to-num-x)]
-      (conj bl l))
-    (catch IllegalArgumentException _ nil)))
+  (let [checker #"^(:?\d+-?)+[\dX]?$"
+        extractor #"[\dX]"]
+    (if (re-matches checker isbn)
+      (->> isbn
+           (re-seq extractor)
+           (map #(-> % first (Character/digit 10)))))))
 
 (defn- isbn?* [num-digits isbn]
   (if-let [ds (digits isbn)]
@@ -27,6 +16,7 @@
               (apply +)
               (#(mod % 11))
               (= 0)))
+
     false))
 
 (defn isbn? [isbn]
