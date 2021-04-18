@@ -1,23 +1,22 @@
 (ns isbn-verifier)
 
 (defn- digits [isbn]
-  (let [checker #"^(:?\d+-?)+[\dX]?$"
-        extractor #"[\dX]"]
-    (if (re-matches checker isbn)
-      (->> isbn
-           (re-seq extractor)
-           (map #(-> % first (Character/digit 10)))))))
-
-(defn- isbn?* [num-digits isbn]
-  (if-let [ds (digits isbn)]
-    (and (= (count ds) num-digits)
-         (->> ds
-              (map * (range num-digits 0 -1))
-              (apply +)
-              (#(mod % 11))
-              (= 0)))
-
-    false))
+  (let [normalized (->> isbn
+                        (remove #(= \- %))
+                        (apply str))
+        extractor #"\d{9}[\dX]"
+        to-num (fn [c] (if (= c \X)
+                         10
+                         (Character/digit c 10)))]
+    (some->> (re-matches extractor normalized)
+             (map to-num))))
 
 (defn isbn? [isbn]
-  (isbn?* 10 isbn))
+  (if-let [ds (digits isbn)]
+    (and (= (count ds) 10)
+         (->> ds
+              (map * (range 10 0 -1))
+              (apply +)
+              (#(mod % 11))
+              zero?))
+    false))
